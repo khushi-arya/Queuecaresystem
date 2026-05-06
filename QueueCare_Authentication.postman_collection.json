@@ -1,0 +1,893 @@
+{
+  "info": {
+    "_postman_id": "queuecare-auth-collection",
+    "name": "QueueCare Authentication",
+    "description": "Authentication test suite for QueueCare Hospital System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth Setup",
+      "description": "Variables and environment setup",
+      "item": [
+        {
+          "name": "Set Base URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.environment.set('baseUrl', 'http://localhost:8080/api');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": ["{{baseUrl}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Register User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Register User Test ===');",
+              "",
+              "// Test 1: Check status code",
+              "pm.test('Status code is 201 (Created)', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "// Test 2: Verify response body structure",
+              "pm.test('Response contains required fields', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('userId');",
+              "    pm.expect(jsonData).to.have.property('email');",
+              "    pm.expect(jsonData).to.have.property('role');",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "});",
+              "",
+              "// Test 3: Verify email matches request",
+              "pm.test('Email matches registration request', function () {",
+              "    var jsonData = pm.response.json();",
+              "    var requestBody = JSON.parse(pm.request.body.raw);",
+              "    pm.expect(jsonData.email).to.equal(requestBody.email);",
+              "});",
+              "",
+              "// Test 4: Verify default role is PATIENT",
+              "pm.test('Default role is PATIENT', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.role).to.equal('PATIENT');",
+              "});",
+              "",
+              "// Test 5: Verify no token is returned on registration",
+              "pm.test('Token is null on registration (login required)', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.be.null;",
+              "});",
+              "",
+              "// Store user data for subsequent tests",
+              "if (pm.response.code === 201) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set('registeredUserId', jsonData.userId);",
+              "    pm.environment.set('registeredEmail', jsonData.email);",
+              "    console.log('✓ User registered successfully');",
+              "    console.log('User ID: ' + jsonData.userId);",
+              "    console.log('Email: ' + jsonData.email);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient1@queuecare.com\",\n  \"password\": \"Password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        }
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient1@queuecare.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"token\": null,\n  \"userId\": 1,\n  \"email\": \"patient1@queuecare.com\",\n  \"role\": \"PATIENT\",\n  \"message\": \"User registered successfully. Please login to get token.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "1.1 Register User - Duplicate Email (Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Duplicate Email Test ===');",
+              "",
+              "// Test 1: Check status code is 409 Conflict",
+              "pm.test('Status code is 409 (Conflict) for duplicate email', function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "",
+              "// Test 2: Verify error message",
+              "pm.test('Response contains error message', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message).to.include('already exists');",
+              "});",
+              "",
+              "console.log('✓ Duplicate email validation working correctly');",
+              "console.log('Response: ' + pm.response.text());"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient1@queuecare.com\",\n  \"password\": \"Password456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        }
+      },
+      "response": [
+        {
+          "name": "409 Conflict",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient1@queuecare.com\",\n  \"password\": \"Password456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "status": "Conflict",
+          "code": 409,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"token\": null,\n  \"userId\": null,\n  \"email\": null,\n  \"role\": null,\n  \"message\": \"Email already exists: patient1@queuecare.com\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "1.2 Register User - Invalid Email (Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Invalid Email Test ===');",
+              "",
+              "// Test 1: Check status code is 400 Bad Request",
+              "pm.test('Status code is 400 (Bad Request) for invalid email', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "// Test 2: Verify error message contains email validation error",
+              "pm.test('Response contains email validation error', function () {",
+              "    var response = pm.response.text();",
+              "    pm.expect(response.toLowerCase()).to.include('email');",
+              "});",
+              "",
+              "console.log('✓ Email validation working correctly');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"invalid-email\",\n  \"password\": \"Password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "1.3 Register User - Short Password (Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Short Password Test ===');",
+              "",
+              "// Test 1: Check status code is 400 Bad Request",
+              "pm.test('Status code is 400 (Bad Request) for short password', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "// Test 2: Verify error message contains password validation error",
+              "pm.test('Response contains password validation error', function () {",
+              "    var response = pm.response.text();",
+              "    pm.expect(response.toLowerCase()).to.include('password');",
+              "});",
+              "",
+              "console.log('✓ Password length validation working correctly');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"newuser@queuecare.com\",\n  \"password\": \"Pass\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "2. Login User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Login User Test ===');",
+              "",
+              "// Test 1: Check status code",
+              "pm.test('Status code is 200 (OK)', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Test 2: Verify response body structure",
+              "pm.test('Response contains JWT token and user details', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('token');",
+              "    pm.expect(jsonData).to.have.property('userId');",
+              "    pm.expect(jsonData).to.have.property('email');",
+              "    pm.expect(jsonData).to.have.property('role');",
+              "});",
+              "",
+              "// Test 3: Verify token is not null and is a string",
+              "pm.test('JWT token is valid (not null)', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.not.be.null;",
+              "    pm.expect(typeof jsonData.token).to.equal('string');",
+              "    pm.expect(jsonData.token.length).to.be.greaterThan(0);",
+              "});",
+              "",
+              "// Test 4: Verify email matches login request",
+              "pm.test('Email matches login request', function () {",
+              "    var jsonData = pm.response.json();",
+              "    var requestBody = JSON.parse(pm.request.body.raw);",
+              "    pm.expect(jsonData.email).to.equal(requestBody.email);",
+              "});",
+              "",
+              "// Test 5: Verify JWT token structure (3 parts separated by dots)",
+              "pm.test('JWT token has valid structure', function () {",
+              "    var jsonData = pm.response.json();",
+              "    var tokenParts = jsonData.token.split('.');",
+              "    pm.expect(tokenParts.length).to.equal(3);",
+              "});",
+              "",
+              "// Store JWT token for protected API calls",
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set('jwtToken', jsonData.token);",
+              "    pm.environment.set('userId', jsonData.userId);",
+              "    pm.environment.set('userRole', jsonData.role);",
+              "    console.log('✓ Login successful');",
+              "    console.log('Token stored: ' + jsonData.token.substring(0, 20) + '...');",
+              "    console.log('User ID: ' + jsonData.userId);",
+              "    console.log('Role: ' + jsonData.role);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient1@queuecare.com\",\n  \"password\": \"Password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient1@queuecare.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwYXRpZW50MUBxdWV1ZWNhcmUuY29tIiwidXNlcklkIjoxLCJyb2xlIjoiUEFUSUVOVCIsImVtYWlsIjoicGF0aWVudDFAcXVldWVjYXJlLmNvbSIsImlhdCI6MTcxMjc1NjQwMCwiZXhwIjoxNzEyODQyODAwfQ.signature\",\n  \"userId\": 1,\n  \"email\": \"patient1@queuecare.com\",\n  \"role\": \"PATIENT\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.1 Login User - Invalid Credentials (Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Invalid Credentials Test ===');",
+              "",
+              "// Test 1: Check status code is 401 Unauthorized",
+              "pm.test('Status code is 401 (Unauthorized) for invalid credentials', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "// Test 2: Verify error message",
+              "pm.test('Response contains error message', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('message');",
+              "    pm.expect(jsonData.message).to.include('Invalid email or password');",
+              "});",
+              "",
+              "// Test 3: Verify token is null",
+              "pm.test('Token is null on failed login', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.be.null;",
+              "});",
+              "",
+              "console.log('✓ Invalid credentials validation working correctly');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient1@queuecare.com\",\n  \"password\": \"WrongPassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        }
+      },
+      "response": [
+        {
+          "name": "401 Unauthorized",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient1@queuecare.com\",\n  \"password\": \"WrongPassword123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"token\": null,\n  \"userId\": null,\n  \"email\": null,\n  \"role\": null,\n  \"message\": \"Invalid email or password\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2 Login User - Nonexistent Email (Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Nonexistent Email Test ===');",
+              "",
+              "// Test 1: Check status code is 401 Unauthorized",
+              "pm.test('Status code is 401 (Unauthorized) for nonexistent email', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "console.log('✓ Nonexistent user validation working correctly');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"nonexistent@queuecare.com\",\n  \"password\": \"Password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "3. Access Protected API - Get User by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Protected API Access Test ===');",
+              "",
+              "// Test 1: Check status code",
+              "pm.test('Status code is 200 (OK) for authenticated request', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Test 2: Verify response contains user data",
+              "pm.test('Response contains user details', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('email');",
+              "    pm.expect(jsonData).to.have.property('role');",
+              "});",
+              "",
+              "// Test 3: Verify user data matches authenticated user",
+              "pm.test('User data matches authenticated user', function () {",
+              "    var jsonData = pm.response.json();",
+              "    var userId = pm.environment.get('userId');",
+              "    pm.expect(jsonData.id).to.equal(userId);",
+              "    pm.expect(jsonData.email).to.equal(pm.environment.get('registeredEmail'));",
+              "});",
+              "",
+              "// Test 4: Verify response does not contain password",
+              "pm.test('Response does not contain password field', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.not.have.property('password');",
+              "});",
+              "",
+              "console.log('✓ Protected API access successful with JWT');",
+              "var jsonData = pm.response.json();",
+              "console.log('User ID: ' + jsonData.id);",
+              "console.log('Email: ' + jsonData.email);",
+              "console.log('Role: ' + jsonData.role);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "{{userId}}"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwYXRpZW50MUBxdWV1ZWNhcmUuY29tIiwidXNlcklkIjoxLCJyb2xlIjoiUEFUSUVOVCIsImVtYWlsIjoicGF0aWVudDFAcXVldWVjYXJlLmNvbSIsImlhdCI6MTcxMjc1NjQwMCwiZXhwIjoxNzEyODQyODAwfQ.signature",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/users/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "users", "1"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"id\": 1,\n  \"email\": \"patient1@queuecare.com\",\n  \"role\": \"PATIENT\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "3.1 Access Protected API - No Token (Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Missing Token Test ===');",
+              "",
+              "// Test 1: Check status code is 401 or 403",
+              "pm.test('Status code is 401 or 403 (Unauthorized/Forbidden)', function () {",
+              "    pm.expect([401, 403]).to.include(pm.response.code);",
+              "});",
+              "",
+              "console.log('✓ Token validation working correctly - request rejected without token');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "1"]
+        }
+      }
+    },
+    {
+      "name": "3.2 Access Protected API - Invalid Token (Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Invalid Token Test ===');",
+              "",
+              "// Test 1: Check status code is 401 or 403",
+              "pm.test('Status code is 401 or 403 (Unauthorized/Forbidden) for invalid token', function () {",
+              "    pm.expect([401, 403]).to.include(pm.response.code);",
+              "});",
+              "",
+              "console.log('✓ Invalid token validation working correctly');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer invalid.token.here",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "1"]
+        }
+      }
+    },
+    {
+      "name": "3.3 Access Protected API - Expired Token (Error)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Expired Token Test ===');",
+              "",
+              "// Note: This test would only work if the token has actually expired (24 hours)",
+              "// For testing purposes, you would need to modify the JWT expiration",
+              "",
+              "// Test 1: Check status code is 401",
+              "pm.test('Status code is 401 (Unauthorized) for expired token', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "console.log('✓ Expired token validation test');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwidXNlcklkIjoxLCJyb2xlIjoiUEFUSUVOVCIsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImlhdCI6MTcxMjc1NjQwMCwiZXhwIjoxNzEyNzU2NTAwfQ.expired",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "1"]
+        }
+      }
+    },
+    {
+      "name": "4. Get All Users (Protected)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('=== Get All Users Test ===');",
+              "",
+              "// Test 1: Check status code",
+              "pm.test('Status code is 200 (OK)', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Test 2: Verify response is an array",
+              "pm.test('Response is an array of users', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(Array.isArray(jsonData)).to.be.true;",
+              "});",
+              "",
+              "// Test 3: Verify each user has required fields",
+              "pm.test('Each user has required fields', function () {",
+              "    var jsonData = pm.response.json();",
+              "    jsonData.forEach(function(user) {",
+              "        pm.expect(user).to.have.property('id');",
+              "        pm.expect(user).to.have.property('email');",
+              "        pm.expect(user).to.have.property('role');",
+              "    });",
+              "});",
+              "",
+              "// Test 4: No passwords in response",
+              "pm.test('No user passwords in response', function () {",
+              "    var jsonData = pm.response.json();",
+              "    jsonData.forEach(function(user) {",
+              "        pm.expect(user).to.not.have.property('password');",
+              "    });",
+              "});",
+              "",
+              "console.log('✓ All users retrieved successfully');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": ["{{baseUrl}}"],
+          "path": ["users"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "users"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  {\n    \"id\": 1,\n    \"email\": \"patient1@queuecare.com\",\n    \"role\": \"PATIENT\"\n  },\n  {\n    \"id\": 2,\n    \"email\": \"patient2@queuecare.com\",\n    \"role\": \"PATIENT\"\n  }\n]"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "jwtToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "registeredUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "registeredEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userRole",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

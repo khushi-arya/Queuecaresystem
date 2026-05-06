@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueCare - WebSocket Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #764ba2;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-connected {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        .status-disconnected {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .connection-status {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .connection-status.connected {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .connection-status.disconnected {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        .queue-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .queue-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .queue-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .queue-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-waiting {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .status-in-progress {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .status-done {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .status-missed {
+            background: #ffccbc;
+            color: #d84315;
+        }
+
+        .notification-feed {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .notification-item {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+        }
+
+        .notification-item.info {
+            border-left-color: #2196f3;
+        }
+
+        .notification-item.success {
+            border-left-color: #4caf50;
+        }
+
+        .notification-item.warning {
+            border-left-color: #ff9800;
+        }
+
+        .notification-time {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .patient-queue-status {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .patient-queue-status .position {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .patient-queue-status .ahead {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .patient-queue-status .wait-time {
+            font-size: 1.3em;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 QueueCare WebSocket Demo</h1>
+            <p>Real-time Queue Management System</p>
+        </div>
+
+        <div class="grid">
+            <!-- Doctor Dashboard Section -->
+            <div class="card">
+                <h2>👨‍⚕️ Doctor Dashboard</h2>
+                
+                <div id="doctor-connection-status" class="connection-status disconnected">
+                    <span class="status-indicator status-disconnected"></span>
+                    Disconnected
+                </div>
+
+                <div class="form-group">
+                    <label for="doctor-id">Doctor ID:</label>
+                    <input type="number" id="doctor-id" placeholder="e.g., 1" value="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="doctor-token">Auth Token:</label>
+                    <input type="text" id="doctor-token" placeholder="Paste JWT token here">
+                </div>
+
+                <button onclick="connectDoctorDashboard()">Connect Dashboard</button>
+                <button onclick="disconnectDoctorDashboard()" style="margin-top: 10px; background: #f44336;">Disconnect Dashboard</button>
+
+                <table class="queue-table" id="queue-table">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Patient</th>
+                            <th>Status</th>
+                            <th>Ahead</th>
+                            <th>Est. Wait</th>
+                        </tr>
+                    </thead>
+                    <tbody id="queue-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #999;">Connect to see queue updates</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Patient Tracker Section -->
+            <div class="card">
+                <h2>👤 Patient Portal</h2>
+                
+                <div id="patient-connection-status" class="connection-status disconnected">
+                    <span class="status-indicator status-disconnected"></span>
+                    Disconnected
+                </div>
+
+                <div class="form-group">
+                    <label for="patient-id">Patient ID:</label>
+                    <input type="number" id="patient-id" placeholder="e.g., 1" value="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="patient-token">Auth Token:</label>
+                    <input type="text" id="patient-token" placeholder="Paste JWT token here">
+                </div>
+
+                <button onclick="connectPatientTracker()">Connect Portal</button>
+                <button onclick="disconnectPatientTracker()" style="margin-top: 10px; background: #f44336;">Disconnect Portal</button>
+
+                <div id="patient-queue-status" class="patient-queue-status" style="display: none;">
+                    <h3>Your Queue Status</h3>
+                    <div class="position">Waiting...</div>
+                    <div class="ahead">Check notifications for updates</div>
+                </div>
+
+                <div>
+                    <h3 style="margin-top: 20px; color: #667eea;">Notifications:</h3>
+                    <div class="notification-feed" id="notification-feed"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Commands Section -->
+        <div class="card">
+            <h2>🧪 Test Commands</h2>
+            <p style="color: #666; margin-bottom: 20px;">Use these to simulate queue updates (requires both connections active)</p>
+
+            <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <button onclick="testBroadcastUpdate()">Broadcast Queue Update</button>
+                <button onclick="testNotifyPatient()">Notify Patient</button>
+                <button onclick="testNotifyTurnNear()">Turn Near Alert</button>
+                <button onclick="testNotifyPatientCalled()">Patient Called</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include WebSocket dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    
+    <!-- Include our WebSocket client -->
+    <script src="/js/QueueCareWebSocket.js"></script>
+
+    <script>
+        let doctorDashboard = null;
+        let patientTracker = null;
+
+        // Doctor Dashboard Functions
+        async function connectDoctorDashboard() {
+            const doctorId = document.getElementById('doctor-id').value;
+            const token = document.getElementById('doctor-token').value;
+
+            if (!doctorId) {
+                alert('Please enter Doctor ID');
+                return;
+            }
+
+            try {
+                doctorDashboard = new DoctorQueueDashboard(
+                    parseInt(doctorId),
+                    token,
+                    window.location.origin
+                );
+
+                // Override status display
+                const originalInit = doctorDashboard.initialize.bind(doctorDashboard);
+                doctorDashboard.initialize = async function() {
+                    updateDoctorStatus('connecting');
+                    try {
+                        await originalInit();
+                        updateDoctorStatus('connected');
+                    } catch (error) {
+                        updateDoctorStatus('disconnected');
+                        throw error;
+                    }
+                };
+
+                await doctorDashboard.initialize();
+                
+            } catch (error) {
+                alert('Failed to connect: ' + error.message);
+                updateDoctorStatus('disconnected');
+            }
+        }
+
+        function disconnectDoctorDashboard() {
+            if (doctorDashboard) {
+                doctorDashboard.destroy();
+                doctorDashboard = null;
+                updateDoctorStatus('disconnected');
+                document.getElementById('queue-tbody').innerHTML = 
+                    '<tr><td colspan="5" style="text-align: center; color: #999;">Disconnected</td></tr>';
+            }
+        }
+
+        function updateDoctorStatus(status) {
+            const statusEl = document.getElementById('doctor-connection-status');
+            const indicator = statusEl.querySelector('.status-indicator');
+
+            if (status === 'connected') {
+                statusEl.classList.remove('disconnected');
+                statusEl.classList.add('connected');
+                indicator.classList.remove('status-disconnected');
+                indicator.classList.add('status-connected');
+                statusEl.innerHTML = '<span class="status-indicator status-connected"></span>Connected - Receiving updates';
+            } else if (status === 'connecting') {
+                statusEl.classList.add('disconnected');
+                statusEl.innerHTML = '<span class="status-indicator status-disconnected"></span>Connecting...';
+            } else {
+                statusEl.classList.add('disconnected');
+                statusEl.classList.remove('connected');
+                indicator.classList.remove('status-connected');
+                indicator.classList.add('status-disconnected');
+                statusEl.innerHTML = '<span class="status-indicator status-disconnected"></span>Disconnected';
+            }
+        }
+
+        // Patient Tracker Functions
+        async function connectPatientTracker() {
+            const patientId = document.getElementById('patient-id').value;
+            const token = document.getElementById('patient-token').value;
+
+            if (!patientId) {
+                alert('Please enter Patient ID');
+                return;
+            }
+
+            try {
+                patientTracker = new PatientQueueTracker(
+                    parseInt(patientId),
+                    token,
+                    window.location.origin
+                );
+
+                // Override notification handler to show in UI
+                const originalHandler = patientTracker.handleNotification.bind(patientTracker);
+                patientTracker.handleNotification = function(notification) {
+                    originalHandler(notification);
+                    addNotification(notification);
+                    document.getElementById('patient-queue-status').style.display = 'block';
+                };
+
+                updatePatientStatus('connecting');
+                await patientTracker.initialize();
+                updatePatientStatus('connected');
+
+            } catch (error) {
+                alert('Failed to connect: ' + error.message);
+                updatePatientStatus('disconnected');
+            }
+        }
+
+        function disconnectPatientTracker() {
+            if (patientTracker) {
+                patientTracker.destroy();
+                patientTracker = null;
+                updatePatientStatus('disconnected');
+                document.getElementById('notification-feed').innerHTML = '';
+                document.getElementById('patient-queue-status').style.display = 'none';
+            }
+        }
+
+        function updatePatientStatus(status) {
+            const statusEl = document.getElementById('patient-connection-status');
+            const indicator = statusEl.querySelector('.status-indicator');
+
+            if (status === 'connected') {
+                statusEl.classList.remove('disconnected');
+                statusEl.classList.add('connected');
+                indicator.classList.remove('status-disconnected');
+                indicator.classList.add('status-connected');
+                statusEl.innerHTML = '<span class="status-indicator status-connected"></span>Connected - Notifications enabled';
+            } else if (status === 'connecting') {
+                statusEl.classList.add('disconnected');
+                statusEl.innerHTML = '<span class="status-indicator status-disconnected"></span>Connecting...';
+            } else {
+                statusEl.classList.add('disconnected');
+                statusEl.classList.remove('connected');
+                indicator.classList.remove('status-connected');
+                indicator.classList.add('status-disconnected');
+                statusEl.innerHTML = '<span class="status-indicator status-disconnected"></span>Disconnected';
+            }
+        }
+
+        function addNotification(notification) {
+            const feed = document.getElementById('notification-feed');
+            const time = new Date().toLocaleTimeString();
+            
+            const notificationEl = document.createElement('div');
+            notificationEl.className = 'notification-item ' + notification.notificationType.toLowerCase().replace(/_/g, '-');
+            notificationEl.innerHTML = `
+                <strong>${notification.notificationType}</strong>
+                <p>${notification.message}</p>
+                <div class="notification-time">${time}</div>
+            `;
+
+            feed.insertBefore(notificationEl, feed.firstChild);
+
+            // Keep only last 10 notifications
+            while (feed.children.length > 10) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        // Test Functions
+        function testBroadcastUpdate() {
+            if (!doctorDashboard || !doctorDashboard.wsClient.isConnectedStatus()) {
+                alert('Please connect Doctor Dashboard first');
+                return;
+            }
+
+            const doctorId = document.getElementById('doctor-id').value;
+            fetch(`/api/websocket/test/broadcast-queue-update/${doctorId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${document.getElementById('doctor-token').value}`
+                }
+            })
+            .then(r => r.text())
+            .then(msg => console.log('Test result:', msg))
+            .catch(err => alert('Error: ' + err));
+        }
+
+        function testNotifyPatient() {
+            if (!patientTracker || !patientTracker.wsClient.isConnectedStatus()) {
+                alert('Please connect Patient Portal first');
+                return;
+            }
+
+            const patientId = document.getElementById('patient-id').value;
+            fetch(`/api/websocket/test/notify-patient?patientId=${patientId}&queueId=1&doctorId=1&doctorName=Dr.%20Smith`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${document.getElementById('patient-token').value}`
+                }
+            })
+            .then(r => r.text())
+            .then(msg => console.log('Test result:', msg))
+            .catch(err => alert('Error: ' + err));
+        }
+
+        function testNotifyTurnNear() {
+            if (!patientTracker || !patientTracker.wsClient.isConnectedStatus()) {
+                alert('Please connect Patient Portal first');
+                return;
+            }
+
+            const patientId = document.getElementById('patient-id').value;
+            fetch(`/api/websocket/test/notify-turn-near/${patientId}?queueId=1&doctorId=1&doctorName=Dr.%20Smith`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${document.getElementById('patient-token').value}`
+                }
+            })
+            .then(r => r.text())
+            .then(msg => console.log('Test result:', msg))
+            .catch(err => alert('Error: ' + err));
+        }
+
+        function testNotifyPatientCalled() {
+            if (!patientTracker || !patientTracker.wsClient.isConnectedStatus()) {
+                alert('Please connect Patient Portal first');
+                return;
+            }
+
+            const patientId = document.getElementById('patient-id').value;
+            fetch(`/api/websocket/test/notify-called/${patientId}/1/1?doctorName=Dr.%20Smith`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${document.getElementById('patient-token').value}`
+                }
+            })
+            .then(r => r.text())
+            .then(msg => console.log('Test result:', msg))
+            .catch(err => alert('Error: ' + err));
+        }
+
+        // Request notification permission on load
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Production-grade Logback configuration for QueueCare System
+  
+  This file provides advanced logging configuration for Logback (default SLF4J implementation).
+  Can be activated by placing in src/main/resources/ (Spring will auto-detect it).
+  
+  Benefits of using logback-spring.xml over application.yml:
+  - More advanced configuration options
+  - Async appenders for better performance
+  - Multiple appender configurations (file, console, rolling)
+  - Profile-specific configurations (dev, prod)
+  
+  Note: If using this file, remove logging configuration from application.yml
+-->
+<configuration>
+    <!-- Get application name from Spring Boot properties -->
+    <springProperty name="app.name" source="spring.application.name" defaultValue="queuecaresystem"/>
+    <springProperty name="app.env" source="spring.profiles.active" defaultValue="dev"/>
+    
+    <!-- Define log directory variable -->
+    <property name="LOG_DIR" value="./logs"/>
+    <property name="LOG_FILE" value="${LOG_DIR}/queuecaresystem.log"/>
+    
+    <!-- 
+         CONSOLE APPENDER - For real-time log monitoring in development
+         Outputs colored logs to console for better readability
+    -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} 
+                [%-5level] 
+                [%15.15thread] 
+                [%X{correlationId}] 
+                [%-40.40logger{39}] 
+                - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!--
+         FILE APPENDER - For production logging to file with retention policy
+         Rolling file appender that creates new files when max size is reached
+    -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- Log file path -->
+        <file>${LOG_FILE}</file>
+        
+        <!-- Rolling policy: Create new file when size exceeds 10MB or date changes -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- File name pattern with date and size index -->
+            <fileNamePattern>${LOG_DIR}/queuecaresystem-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <!-- Max size of single file (10MB) -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- Keep logs for 30 days -->
+            <maxHistory>30</maxHistory>
+            <!-- Total size cap across all log files (1GB) -->
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        
+        <!-- Log format with correlation ID and line numbers for file appender -->
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} 
+                [%-5level] 
+                [%15.15thread] 
+                [%X{correlationId}] 
+                [%-40.40logger{39}:%L] 
+                - %msg%n
+            </pattern>
+            <!-- Use UTF-8 encoding for international character support -->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    
+    <!--
+         ERROR FILE APPENDER - Separate file for ERROR and WARN level logs
+         Useful for quick access to critical issues in production
+    -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/queuecaresystem-errors.log</file>
+        
+        <!-- Only log WARN and ERROR level messages -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/queuecaresystem-errors-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+        
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} 
+                [%-5level] 
+                [%15.15thread] 
+                [%X{correlationId}] 
+                [%-40.40logger{39}:%L] 
+                - %msg%n
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    
+    <!--
+         ASYNC APPENDER - Improves performance by writing logs asynchronously
+         Prevents logging from blocking request processing
+         Use for file appender to avoid I/O delays
+    -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- Queue size for async logging -->
+        <queueSize>512</queueSize>
+        <!-- Drop TRACE/DEBUG logs if queue is full (keep WARN/ERROR) -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- Timeout for waiting to append (ms) -->
+        <includeCallerData>false</includeCallerData>
+        
+        <!-- Reference to FILE appender -->
+        <appender-ref ref="FILE"/>
+    </appender>
+    
+    <!--
+         ASYNC APPENDER for Error file
+    -->
+    <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="ERROR_FILE"/>
+    </appender>
+    
+    <!-- 
+         LOGGER CONFIGURATION - Package-specific log levels
+         These define which packages get which log levels
+    -->
+    
+    <!-- Security package: WARN level (high priority for auth events) -->
+    <logger name="com.hospital.queuecaresystem.security" level="WARN">
+        <appender-ref ref="ASYNC_ERROR_FILE"/>
+    </logger>
+    
+    <!-- Controller package: INFO level -->
+    <logger name="com.hospital.queuecaresystem.controller" level="INFO"/>
+    
+    <!-- Service package: INFO level -->
+    <logger name="com.hospital.queuecaresystem.service" level="INFO"/>
+    
+    <!-- Repository package: DEBUG level (useful for understanding queries) -->
+    <logger name="com.hospital.queuecaresystem.repository" level="INFO"/>
+    
+    <!-- Exception handler: WARN level (errors and warnings) -->
+    <logger name="com.hospital.queuecaresystem.config.GlobalExceptionHandler" level="WARN">
+        <appender-ref ref="ASYNC_ERROR_FILE"/>
+    </logger>
+    
+    <!-- Spring Framework packages: WARN to reduce noise -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    <logger name="org.springframework.web" level="INFO"/>
+    
+    <!-- Hibernate: WARN level (verbose otherwise) -->
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    
+    <!-- MySQL driver: WARN level -->
+    <logger name="com.mysql.cj.jdbc.Driver" level="WARN"/>
+    
+    <!--
+         PROFILES - Different configurations for dev and production
+         Activate profiles using: spring.profiles.active=prod
+    -->
+    
+    <!-- DEVELOPMENT PROFILE: Enable DEBUG logging for easier debugging -->
+    <springProfile name="dev">
+        <!-- Development: DEBUG level for application packages -->
+        <logger name="com.hospital.queuecaresystem" level="DEBUG"/>
+        
+        <!-- Root logger: DEBUG level -->
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+    
+    <!-- PRODUCTION PROFILE: INFO level, async appenders for performance -->
+    <springProfile name="prod">
+        <!-- Production: INFO level for application packages -->
+        <logger name="com.hospital.queuecaresystem" level="INFO"/>
+        
+        <!-- Root logger: INFO level with async file appenders -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+    </springProfile>
+    
+    <!-- 
+         DEFAULT ROOT LOGGER - Fallback if no profile is active
+         Uses both console and file appenders
+    -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ASYNC_ERROR_FILE"/>
+    </root>
+</configuration>

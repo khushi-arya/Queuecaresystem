@@ -1,0 +1,116 @@
+spring:
+  application:
+    name: queuecaresystem
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/queuecare
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+jwt:
+  secret: QueueCareSecretKeyForJWTTokenGenerationAndValidationWithMinimumLengthOfThirtyTwoCharactersForHS256Algorithm
+  expiration: 86400000
+
+# ============================================================
+# Logging Configuration (SLF4J + Logback)
+# ============================================================
+# Production-grade logging with appropriate log levels for each component
+# Configure via: logging.level.<package> = LEVEL
+# Levels (in order of severity): TRACE < DEBUG < INFO < WARN < ERROR < FATAL
+
+logging:
+  # Default log level for all packages
+  level:
+    root: INFO
+    # Application packages - INFO level for production
+    com.hospital.queuecaresystem: INFO
+    # Security logs - WARN level (high priority)
+    com.hospital.queuecaresystem.security: WARN
+    com.hospital.queuecaresystem.config: INFO
+    # Controller logs - INFO level
+    com.hospital.queuecaresystem.controller: INFO
+    # Service logs - INFO level
+    com.hospital.queuecaresystem.service: INFO
+    # Exception handling - WARN level
+    com.hospital.queuecaresystem.exception: WARN
+    # Spring Framework internals - WARN to reduce noise
+    org.springframework: WARN
+    org.springframework.security: WARN
+    org.springframework.web: INFO
+    # Hibernate logs - WARN level (verbose otherwise)
+    org.hibernate: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  
+  # Log output format
+  pattern:
+    # Console pattern: [timestamp] [level] [thread] [logger] - message
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5level] [%15.15thread] [%-40.40logger{39}] - %msg%n"
+    # File pattern: include correlation ID, file name, and line number
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5level] [%15.15thread] [%X{correlationId}] [%-40.40logger{39}:%L] - %msg%n"
+  
+  # Log file configuration
+  file:
+    # Location where log files will be written
+    name: logs/queuecaresystem.log
+    # File rotation policy
+    max-size: 10MB
+    max-history: 30
+    total-size-cap: 1GB
+  
+  # Log level hierarchy (DEBUG enables more verbose output for development)
+  # To enable DEBUG for development, set: logging.level.com.hospital.queuecaresystem=DEBUG
+
+# ============================================================
+# WebSocket Configuration
+# ============================================================
+# Configure WebSocket/STOMP settings for real-time queue updates
+# 
+# Important: Update allowed-origins for production deployment
+websocket:
+  # Comma-separated list of allowed origins for WebSocket connections
+  # Format: protocol://host:port (e.g., https://yourdomain.com, http://localhost:3000)
+  # Security: NEVER use "*" in production
+  allowed-origins: "http://localhost:3000,http://localhost:4200,http://localhost:8080"
+  
+  # WebSocket connection settings
+  connection:
+    # Maximum idle time in seconds before connection is closed
+    idle-timeout: 300
+    # Maximum size of a WebSocket message in bytes
+    max-message-size: 65536
+    # Enable heartbeat/ping-pong to detect stale connections
+    enable-heartbeat: true
+    heartbeat-interval: 30
+
+# ============================================================
+# STOMP Message Broker Settings
+# ============================================================
+stomp:
+  # Topic destinations for broadcast messages (all clients subscribed to a topic receive messages)
+  topic-prefix: "/topic"
+  
+  # Queue destinations for direct user messages (only specific user receives message)
+  queue-prefix: "/queue"
+  
+  # Application destination prefix for @MessageMapping endpoints
+  app-prefix: "/app"
+  
+  # User destination prefix for personal messages
+  user-prefix: "/user"
+

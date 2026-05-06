@@ -1,0 +1,325 @@
+{
+  "info": {
+    "name": "QueueCare - Queue Management",
+    "description": "Doctor Queue Management API - FIFO patient queue operations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "View Today's Queue",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/queue/today?doctorId={{doctorId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "queue", "today"],
+          "query": [
+            {
+              "key": "doctorId",
+              "value": "{{doctorId}}"
+            }
+          ]
+        },
+        "description": "Get all patients in today's queue for a doctor. Returns queue items ordered by position (FIFO)."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Queue by Date",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/queue/date?doctorId={{doctorId}}&date=2024-04-29",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "queue", "date"],
+          "query": [
+            {
+              "key": "doctorId",
+              "value": "{{doctorId}}"
+            },
+            {
+              "key": "date",
+              "value": "2024-04-29",
+              "description": "Date in YYYY-MM-DD format"
+            }
+          ]
+        },
+        "description": "Get queue for a specific date."
+      },
+      "response": []
+    },
+    {
+      "name": "Call Next Patient (FIFO)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/queue/next?doctorId={{doctorId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "queue", "next"],
+          "query": [
+            {
+              "key": "doctorId",
+              "value": "{{doctorId}}"
+            }
+          ]
+        },
+        "description": "Call the next waiting patient in FIFO order. Transitions status from WAITING to IN_PROGRESS. Only one patient can be in progress at a time."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Current Consultation",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/queue/current?doctorId={{doctorId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "queue", "current"],
+          "query": [
+            {
+              "key": "doctorId",
+              "value": "{{doctorId}}"
+            }
+          ]
+        },
+        "description": "Get the patient currently being consulted or null if none."
+      },
+      "response": []
+    },
+    {
+      "name": "Update Status - Mark as DONE",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/queue/{{queueId}}/status?status=DONE",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "queue", "{{queueId}}", "status"],
+          "query": [
+            {
+              "key": "status",
+              "value": "DONE",
+              "description": "DONE, MISSED, IN_PROGRESS, WAITING"
+            }
+          ]
+        },
+        "description": "Mark consultation as completed. Valid transition: IN_PROGRESS → DONE"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Status - Mark as MISSED",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/queue/{{queueId}}/status?status=MISSED",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "queue", "{{queueId}}", "status"],
+          "query": [
+            {
+              "key": "status",
+              "value": "MISSED",
+              "description": "DONE, MISSED, IN_PROGRESS, WAITING"
+            }
+          ]
+        },
+        "description": "Mark patient as missed. Valid transitions: IN_PROGRESS → MISSED, WAITING → MISSED"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Status - Custom",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/queue/{{queueId}}/status?status=IN_PROGRESS",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "queue", "{{queueId}}", "status"],
+          "query": [
+            {
+              "key": "status",
+              "value": "IN_PROGRESS",
+              "description": "WAITING, IN_PROGRESS, DONE, MISSED"
+            }
+          ]
+        },
+        "description": "Update queue status. Change the status parameter to: WAITING, IN_PROGRESS, DONE, or MISSED"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Queue Statistics (Today)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/queue/stats?doctorId={{doctorId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "queue", "stats"],
+          "query": [
+            {
+              "key": "doctorId",
+              "value": "{{doctorId}}"
+            }
+          ]
+        },
+        "description": "Get queue statistics for today. Shows waiting, in-progress, completed, missed counts and average consultation time."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Queue Statistics (By Date)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/queue/stats/date?doctorId={{doctorId}}&date=2024-04-29",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "queue", "stats", "date"],
+          "query": [
+            {
+              "key": "doctorId",
+              "value": "{{doctorId}}"
+            },
+            {
+              "key": "date",
+              "value": "2024-04-29",
+              "description": "Date in YYYY-MM-DD format"
+            }
+          ]
+        },
+        "description": "Get queue statistics for a specific date."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "description": "JWT token from authentication endpoint"
+    },
+    {
+      "key": "doctorId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "queueId",
+      "value": "1",
+      "type": "string",
+      "description": "Queue item ID from queue response"
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+2026-05-06 12:23:04.481 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.QueuecaresystemApplication        :?] 
+                - Starting QueuecaresystemApplication using Java 21.0.10 with PID 21108 (C:\Users\user\OneDrive\Desktop\Queuecaresystem\queuecaresystem\target\classes started by user in C:\Users\user\OneDrive\Desktop\Queuecaresystem\queuecaresystem)
+2026-05-06 12:23:04.482 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.QueuecaresystemApplication        :?] 
+                - The following 1 profile is active: "dev"
+2026-05-06 12:23:07.767 
+                [INFO ] 
+                [           main] 
+                [] 
+                [o.a.coyote.http11.Http11NioProtocol     :?] 
+                - Initializing ProtocolHandler ["http-nio-8080"]
+2026-05-06 12:23:07.769 
+                [INFO ] 
+                [           main] 
+                [] 
+                [o.apache.catalina.core.StandardService  :?] 
+                - Starting service [Tomcat]
+2026-05-06 12:23:07.769 
+                [INFO ] 
+                [           main] 
+                [] 
+                [o.apache.catalina.core.StandardEngine   :?] 
+                - Starting Servlet engine: [Apache Tomcat/10.1.25]
+2026-05-06 12:23:07.861 
+                [INFO ] 
+                [           main] 
+                [] 
+                [o.a.c.c.C.[Tomcat].[localhost].[/]      :?] 
+                - Initializing Spring embedded WebApplicationContext
+2026-05-06 12:23:08.617 
+                [INFO ] 
+                [           main] 
+                [] 
+                [com.zaxxer.hikari.HikariDataSource      :?] 
+                - HikariPool-1 - Starting...
+2026-05-06 12:23:09.219 
+                [INFO ] 
+                [           main] 
+                [] 
+                [com.zaxxer.hikari.pool.HikariPool       :?] 
+                - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@4780341
+2026-05-06 12:23:09.222 
+                [INFO ] 
+                [           main] 
+                [] 
+                [com.zaxxer.hikari.HikariDataSource      :?] 
+                - HikariPool-1 - Start completed.
+2026-05-06 12:23:09.309 
+                [WARN ] 
+                [           main] 
+                [] 
+                [org.hibernate.orm.deprecation           :?] 
+                - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-06 12:23:09.311 
+                [WARN ] 
+                [           main] 
+                [] 
+                [org.hibernate.orm.deprecation           :?] 
+                - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2026-05-06 12:23:10.893 
+                [DEBUG] 
+                [           main] 
+                [] 
+                [org.hibernate.SQL                       :?] 
+                - 
+    alter table appointments 
+       modify column status enum ('CANCELLED','COMPLETED','IN_PROGRESS','NO_SHOW','SCHEDULED') not null
+2026-05-06 12:23:11.035 
+                [DEBUG] 
+                [           main] 
+                [] 
+                [org.hibernate.SQL                       :?] 
+                - 
+    alter table doctor_queues 
+       modify column status enum ('DONE','IN_PROGRESS','MISSED','WAITING') not null
+2026-05-06 12:23:11.062 
+                [DEBUG] 
+                [           main] 
+                [] 
+                [org.hibernate.SQL                       :?] 
+                - 
+    alter table doctors 
+       modify column status enum ('ACTIVE','INACTIVE','ON_LEAVE') not null
+2026-05-06 12:23:11.114 
+                [DEBUG] 
+                [           main] 
+                [] 
+                [org.hibernate.SQL                       :?] 
+                - 
+    alter table users 
+       modify column role enum ('ADMIN','DOCTOR','PATIENT') not null
+2026-05-06 12:23:12.949 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.config.WebSocketConfig            :?] 
+                - Configuring message broker
+2026-05-06 12:23:12.952 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.config.WebSocketConfig            :?] 
+                - Message broker configured with brokers: /topic, /queue
+2026-05-06 12:23:12.952 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.config.WebSocketConfig            :?] 
+                - Application destination prefix: /app
+2026-05-06 12:23:12.953 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.config.WebSocketConfig            :?] 
+                - User destination prefix: /user
+2026-05-06 12:23:13.369 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.config.WebSocketConfig            :?] 
+                - Registering WebSocket STOMP endpoints
+2026-05-06 12:23:13.369 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.config.WebSocketConfig            :?] 
+                - Allowed WebSocket origins: http://localhost:3000,http://localhost:4200,http://localhost:8080
+2026-05-06 12:23:13.378 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.config.WebSocketConfig            :?] 
+                - WebSocket endpoint registered: /ws with 3 allowed origin(s)
+2026-05-06 12:23:13.692 
+                [WARN ] 
+                [           main] 
+                [] 
+                [JpaBaseConfiguration$JpaWebConfiguration:?] 
+                - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-06 12:23:14.465 
+                [INFO ] 
+                [           main] 
+                [] 
+                [o.a.coyote.http11.Http11NioProtocol     :?] 
+                - Starting ProtocolHandler ["http-nio-8080"]
+2026-05-06 12:23:14.496 
+                [INFO ] 
+                [           main] 
+                [] 
+                [org.springframework.web.SimpLogging     :?] 
+                - Starting...
+2026-05-06 12:23:14.497 
+                [INFO ] 
+                [           main] 
+                [] 
+                [org.springframework.web.SimpLogging     :?] 
+                - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@2f9f939]]
+2026-05-06 12:23:14.497 
+                [INFO ] 
+                [           main] 
+                [] 
+                [org.springframework.web.SimpLogging     :?] 
+                - Started.
+2026-05-06 12:23:14.505 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.QueuecaresystemApplication        :?] 
+                - Started QueuecaresystemApplication in 11.085 seconds (process running for 11.567)
+2026-05-06 12:23:14.509 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.config.AdminInitializer           :?] 
+                - Starting admin user initialization...
+2026-05-06 12:23:14.627 
+                [DEBUG] 
+                [           main] 
+                [] 
+                [org.hibernate.SQL                       :?] 
+                - 
+    select
+        u1_0.id,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.password,
+        u1_0.role,
+        u1_0.updated_at 
+    from
+        users u1_0 
+    where
+        u1_0.email=?
+2026-05-06 12:23:14.652 
+                [INFO ] 
+                [           main] 
+                [] 
+                [c.h.q.config.AdminInitializer           :?] 
+                - Admin user with email admin@hospital.com already exists. Skipping creation.

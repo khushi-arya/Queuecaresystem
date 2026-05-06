@@ -1,0 +1,649 @@
+{
+  "info": {
+    "name": "Queue Care - Doctor & Patient Module",
+    "description": "Complete API testing collection for Doctor and Patient modules",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Doctor Endpoints",
+      "item": [
+        {
+          "name": "Create Doctor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. John Smith\",\n  \"specialization\": \"Cardiology\",\n  \"shiftStartTime\": \"09:00:00\",\n  \"shiftEndTime\": \"17:00:00\",\n  \"breakStartTime\": \"12:00:00\",\n  \"breakEndTime\": \"13:00:00\",\n  \"maxPatientsPerDay\": 20,\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/doctors/{{userId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{userId}}"
+              ]
+            },
+            "description": "Create a new doctor profile for a user. Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Doctors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/doctors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors"
+              ]
+            },
+            "description": "Retrieve all doctors"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctor By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/{{doctorId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{doctorId}}"
+              ]
+            },
+            "description": "Get doctor by doctor ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctor By User ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/user/{{userId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "user",
+                "{{userId}}"
+              ]
+            },
+            "description": "Get doctor profile by user ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctors By Specialization",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/specialization/Cardiology",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "specialization",
+                "Cardiology"
+              ]
+            },
+            "description": "Find doctors by specialization. Change 'Cardiology' to desired specialization."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Doctors By Specialization",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/active/Cardiology",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "active",
+                "Cardiology"
+              ]
+            },
+            "description": "Find active doctors by specialization"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctors By Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/status/ACTIVE",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "status",
+                "ACTIVE"
+              ]
+            },
+            "description": "Get doctors filtered by status (ACTIVE, INACTIVE, ON_LEAVE). Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Doctor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. Jane Smith\",\n  \"specialization\": \"Neurology\",\n  \"shiftStartTime\": \"08:00:00\",\n  \"shiftEndTime\": \"16:00:00\",\n  \"breakStartTime\": \"12:00:00\",\n  \"breakEndTime\": \"13:00:00\",\n  \"maxPatientsPerDay\": 25,\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/doctors/{{doctorId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{doctorId}}"
+              ]
+            },
+            "description": "Update doctor information. Requires ADMIN role or be the doctor owner."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Doctor Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/{{doctorId}}/status/ON_LEAVE",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{doctorId}}",
+                "status",
+                "ON_LEAVE"
+              ]
+            },
+            "description": "Update doctor status only (ACTIVE, INACTIVE, ON_LEAVE). Requires ADMIN role."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Doctor",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/{{doctorId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "doctors",
+                "{{doctorId}}"
+              ]
+            },
+            "description": "Delete doctor profile. Requires ADMIN role."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Patient Endpoints",
+      "item": [
+        {
+          "name": "Create Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phoneNumber\": \"+14155552671\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{userId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "{{userId}}"
+              ]
+            },
+            "description": "Create a new patient profile for a user. Phone must be unique."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Patients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients"
+              ]
+            },
+            "description": "Retrieve all patients. Requires ADMIN or DOCTOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Patient By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patientId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "{{patientId}}"
+              ]
+            },
+            "description": "Get patient by patient ID. Requires ADMIN, DOCTOR, or be the patient owner."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Patient By User ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/user/{{userId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "user",
+                "{{userId}}"
+              ]
+            },
+            "description": "Get patient profile by user ID. Requires ADMIN or be the user owner."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Patient By Phone",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/phone/{{phoneNumber}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "phone",
+                "{{phoneNumber}}"
+              ]
+            },
+            "description": "Get patient by phone number. Requires ADMIN or DOCTOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Patients By First Name",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/search/firstname/John",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "search",
+                "firstname",
+                "John"
+              ]
+            },
+            "description": "Search patients by first name (case-insensitive). Requires ADMIN or DOCTOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Patients By Last Name",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/search/lastname/Doe",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "search",
+                "lastname",
+                "Doe"
+              ]
+            },
+            "description": "Search patients by last name (case-insensitive). Requires ADMIN or DOCTOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Patients By Full Name",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/search/fullname?firstName=John&lastName=Doe",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "search",
+                "fullname"
+              ],
+              "query": [
+                {
+                  "key": "firstName",
+                  "value": "John"
+                },
+                {
+                  "key": "lastName",
+                  "value": "Doe"
+                }
+              ]
+            },
+            "description": "Search patients by full name (case-insensitive). Requires ADMIN or DOCTOR role."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Patient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"phoneNumber\": \"+14155552672\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patientId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "{{patientId}}"
+              ]
+            },
+            "description": "Update patient information. Requires ADMIN role or be the patient owner."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Patient",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patientId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "{{patientId}}"
+              ]
+            },
+            "description": "Delete patient profile. Requires ADMIN role or be the patient owner."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Setup & Utilities",
+      "item": [
+        {
+          "name": "Setup Instructions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://example.com",
+              "protocol": "https",
+              "host": [
+                "example.com"
+              ]
+            },
+            "description": "# Postman Setup Instructions\n\n## 1. Import Environment Variables\nCreate a new environment with these variables:\n- `base_url`: http://localhost:8080 (or your server URL)\n- `token`: Your JWT bearer token (get from login)\n- `userId`: User ID to test with (existing user)\n- `doctorId`: Doctor ID (set after creating a doctor)\n- `patientId`: Patient ID (set after creating a patient)\n- `phoneNumber`: Phone number for patient search\n\n## 2. Get JWT Token\n1. First, register/login a user with ADMIN role\n2. Copy the token from response\n3. Paste into the `token` variable in Postman environment\n\n## 3. Test Flow\n1. **Create Doctor**: Use an existing userId\n2. Copy returned doctorId and set in environment\n3. **Create Patient**: Use an existing userId\n4. Copy returned patientId and set in environment\n5. Run other endpoints using the IDs\n\n## 4. Required User Roles\n- `ADMIN`: Full access to create/delete/update\n- `DOCTOR`: Can view patients\n- `PATIENT`: Can view own profile\n\n## 5. Expected Status Codes\n- 201: Created\n- 200: OK\n- 204: No Content (delete)\n- 400: Bad Request (validation error)\n- 404: Not Found\n- 403: Forbidden (insufficient role)\n\n## 6. Common Test Scenarios\n\n### Scenario 1: Full Doctor Workflow\n1. Create Doctor → Copy doctorId\n2. Get Doctor by ID\n3. Update Doctor\n4. Get by Specialization\n5. Update Status to ON_LEAVE\n6. Delete Doctor\n\n### Scenario 2: Full Patient Workflow\n1. Create Patient → Copy patientId\n2. Get Patient by ID\n3. Search by Name\n4. Get by Phone\n5. Update Patient\n6. Delete Patient\n\n### Scenario 3: Validation Testing\n1. Create Doctor with invalid times (end before start)\n2. Create Patient with invalid phone format\n3. Create Doctor with duplicate user_id\n4. Test missing required fields\n"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "doctorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "patientId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "phoneNumber",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
