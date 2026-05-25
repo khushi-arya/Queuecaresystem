@@ -95,6 +95,21 @@ public class DoctorResponse {
     private DoctorStatus status;
 
     /**
+     * Doctor's biography or professional summary
+     */
+    private String bio;
+
+    /**
+     * Years of experience
+     */
+    private Integer experience;
+
+    /**
+     * Hospital or clinic affiliation
+     */
+    private String hospitalAffiliation;
+
+    /**
      * Timestamp when the doctor record was created (ISO 8601 format)
      */
     private LocalDateTime createdAt;

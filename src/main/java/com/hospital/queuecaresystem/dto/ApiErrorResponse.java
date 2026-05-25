@@ -37,4 +37,17 @@ public class ApiErrorResponse {
         this.message = message;
         this.timestamp = LocalDateTime.now();
     }
+
+    /**
+     * Constructor for creating simple error response with default status.
+     * 
+     * @param error Error name
+     * @param message Descriptive error message
+     */
+    public ApiErrorResponse(String error, String message) {
+        this.status = 500;
+        this.error = error;
+        this.message = message;
+        this.timestamp = LocalDateTime.now();
+    }
 }

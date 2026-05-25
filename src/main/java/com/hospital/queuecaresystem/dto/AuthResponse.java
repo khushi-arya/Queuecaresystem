@@ -13,16 +13,18 @@ import lombok.Setter;
 public class AuthResponse {
 
     private String token;
-    private Long userId;
-    private String email;
-    private Role role;
+    private UserResponse user;
     private String message;
 
     public AuthResponse(String token, Long userId, String email, Role role) {
         this.token = token;
-        this.userId = userId;
-        this.email = email;
-        this.role = role;
+        this.user = new UserResponse(userId, email, role);
+        this.message = "Login successful";
+    }
+
+    public AuthResponse(String token, UserResponse user) {
+        this.token = token;
+        this.user = user;
         this.message = "Login successful";
     }
 }

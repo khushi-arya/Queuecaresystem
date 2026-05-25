@@ -73,6 +73,13 @@ public class Doctor {
     @Column(nullable = false, length = 20)
     private DoctorStatus status = DoctorStatus.ACTIVE;
 
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    private Integer experience;
+
+    private String hospitalAffiliation;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

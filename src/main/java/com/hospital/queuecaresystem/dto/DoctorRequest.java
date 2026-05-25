@@ -87,4 +87,22 @@ public class DoctorRequest {
      * Optional field, defaults to ACTIVE if not provided.
      */
     private DoctorStatus status;
+
+    /**
+     * Doctor's biography or professional summary.
+     * Optional field.
+     */
+    private String bio;
+
+    /**
+     * Years of experience.
+     * Optional field.
+     */
+    private Integer experience;
+
+    /**
+     * Hospital or clinic affiliation.
+     * Optional field.
+     */
+    private String hospitalAffiliation;
 }

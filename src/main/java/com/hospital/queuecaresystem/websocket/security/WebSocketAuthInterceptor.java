@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -71,15 +73,28 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
                 return false;
             }
             
-            // Extract user information
-            String userId = claims.getSubject();
+            // Extract user information from standard JWT claims
+            String userId = claims.getSubject();  // "sub" claim - standard JWT subject
+            String userEmail = (String) claims.get("email");  // Optional email claim
             String userRole = (String) claims.get("role");
-            String username = (String) claims.get("username");
             
-            // Store in session attributes for use in handlers
+            // Validate that userId (subject) is present - this is required
+            if (userId == null || userId.isEmpty()) {
+                log.warn("WebSocket connection rejected - JWT token has no subject (userId)");
+                return false;
+            }
+            
+            // Use email for display if available, otherwise fall back to userId
+            String username = (userEmail != null && !userEmail.isEmpty()) ? userEmail : userId;
+            
+            // Store non-null values in session attributes for use in handlers
             attributes.put("userId", userId);
-            attributes.put("userRole", userRole);
             attributes.put("username", username);
+            
+            // Only add role if it's present (optional claim)
+            if (userRole != null && !userRole.isEmpty()) {
+                attributes.put("userRole", userRole);
+            }
             
             log.info("WebSocket connection authenticated for user: {} (ID: {})", username, userId);
             return true;
@@ -104,26 +119,63 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
     }
 
     /**
-     * Extract JWT token from Authorization header
+     * Extract JWT token from Authorization header or query parameter
      * 
-     * Expected format: "Authorization: Bearer <token>"
+     * Tries multiple sources:
+     * 1. Authorization header: "Authorization: Bearer <token>"
+     * 2. Query parameter: ?token=<token>
+     * 3. STOMP passcode header (fallback for STOMP clients)
+     * 
+     * This supports both direct HTTP headers and SockJS/STOMP connections
+     * where headers may not be directly accessible.
      * 
      * @param request HTTP request
      * @return JWT token or null if not found
      */
     private String extractTokenFromRequest(ServerHttpRequest request) {
+        // Try Authorization header first
         String authHeader = request.getHeaders().getFirst("Authorization");
-        
-        if (authHeader == null || authHeader.isEmpty()) {
-            return null;
-        }
-        
-        if (!authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && !authHeader.isEmpty()) {
+            if (authHeader.startsWith("Bearer ")) {
+                log.debug("Token extracted from Authorization header");
+                return authHeader.substring(7); // Remove "Bearer " prefix
+            }
             log.warn("Invalid Authorization header format");
-            return null;
         }
         
-        return authHeader.substring(7); // Remove "Bearer " prefix
+        // Try query parameter (for SockJS compatibility)
+        String uri = request.getURI().toString();
+        log.debug("WebSocket request URI: {}", uri);
+        
+        if (uri.contains("token=")) {
+            int tokenIndex = uri.indexOf("token=") + 6;
+            int endIndex = uri.indexOf("&", tokenIndex);
+            if (endIndex == -1) {
+                endIndex = uri.length();
+            }
+            String token = uri.substring(tokenIndex, endIndex);
+            if (!token.isEmpty()) {
+                try {
+                    // URL-decode the token since it's sent as a query parameter
+                    token = URLDecoder.decode(token, StandardCharsets.UTF_8);
+                    log.debug("Token extracted from query parameter (URL decoded)");
+                    return token;
+                } catch (Exception e) {
+                    log.error("Error decoding URL-encoded token: {}", e.getMessage());
+                    return null;
+                }
+            }
+        }
+        
+        // Try passcode header (STOMP connect header)
+        String passcode = request.getHeaders().getFirst("passcode");
+        if (passcode != null && !passcode.isEmpty()) {
+            log.debug("Token extracted from passcode header");
+            return passcode;
+        }
+        
+        log.debug("No JWT token found in request. URI: {}", uri);
+        return null;
     }
 
     /**

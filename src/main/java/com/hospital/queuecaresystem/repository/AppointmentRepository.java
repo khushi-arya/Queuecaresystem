@@ -114,4 +114,35 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findActiveAppointmentsByPatientAndDoctor(
             @Param("patientId") Long patientId,
             @Param("doctorId") Long doctorId);
+
+    /**
+     * Count total appointments
+     */
+    @Query("SELECT COUNT(a) FROM Appointment a")
+    long countTotalAppointments();
+
+    /**
+     * Count appointments by status
+     */
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.status = :status")
+    long countByStatus(@Param("status") AppointmentStatus status);
+
+    /**
+     * Count appointments in a date range by status
+     */
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.appointmentDate >= :startDate " +
+           "AND a.appointmentDate <= :endDate AND a.status = :status")
+    long countByStatusAndDateRange(
+            @Param("status") AppointmentStatus status,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    /**
+     * Count total appointments in a date range
+     */
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.appointmentDate >= :startDate " +
+           "AND a.appointmentDate <= :endDate")
+    long countByDateRange(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

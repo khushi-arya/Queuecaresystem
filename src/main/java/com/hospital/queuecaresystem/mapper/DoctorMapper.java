@@ -45,6 +45,9 @@ public class DoctorMapper {
         doctor.setBreakStartTime(request.getBreakStartTime());
         doctor.setBreakEndTime(request.getBreakEndTime());
         doctor.setMaxPatientsPerDay(request.getMaxPatientsPerDay());
+        doctor.setBio(request.getBio());
+        doctor.setExperience(request.getExperience());
+        doctor.setHospitalAffiliation(request.getHospitalAffiliation());
         
         // Set status, default to ACTIVE if not provided
         doctor.setStatus(request.getStatus() != null ? request.getStatus() : DoctorStatus.ACTIVE);
@@ -77,6 +80,9 @@ public class DoctorMapper {
         response.setBreakEndTime(doctor.getBreakEndTime());
         response.setMaxPatientsPerDay(doctor.getMaxPatientsPerDay());
         response.setStatus(doctor.getStatus());
+        response.setBio(doctor.getBio());
+        response.setExperience(doctor.getExperience());
+        response.setHospitalAffiliation(doctor.getHospitalAffiliation());
         response.setCreatedAt(doctor.getCreatedAt());
         response.setUpdatedAt(doctor.getUpdatedAt());
 
@@ -112,6 +118,9 @@ public class DoctorMapper {
         doctor.setBreakStartTime(request.getBreakStartTime());
         doctor.setBreakEndTime(request.getBreakEndTime());
         doctor.setMaxPatientsPerDay(request.getMaxPatientsPerDay());
+        doctor.setBio(request.getBio());
+        doctor.setExperience(request.getExperience());
+        doctor.setHospitalAffiliation(request.getHospitalAffiliation());
         
         if (request.getStatus() != null) {
             doctor.setStatus(request.getStatus());

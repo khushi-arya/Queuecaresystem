@@ -2,7 +2,9 @@ package com.hospital.queuecaresystem.controller;
 
 import com.hospital.queuecaresystem.dto.PatientRequest;
 import com.hospital.queuecaresystem.dto.PatientResponse;
+import com.hospital.queuecaresystem.security.CustomUserDetails;
 import com.hospital.queuecaresystem.service.PatientService;
+import com.hospital.queuecaresystem.exception.UserNotFoundException;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -11,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,6 +79,55 @@ public class PatientController {
     public ResponseEntity<PatientResponse> getPatientByPhoneNumber(@PathVariable String phoneNumber) {
         PatientResponse response = patientService.getPatientByPhoneNumber(phoneNumber);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get current patient's profile
+     * GET /api/patients/profile
+     * Returns the profile of the currently authenticated patient user
+     * If no profile exists, creates an empty one automatically
+     */
+    @GetMapping("/profile")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<PatientResponse> getProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getId();
+        
+        try {
+            PatientResponse response = patientService.getPatientByUserId(userId);
+            return ResponseEntity.ok(response);
+        } catch (UserNotFoundException e) {
+    return ResponseEntity.notFound().build();
+}
+    }
+
+    /**
+     * Update current patient's profile
+     * PUT /api/patients/profile
+     * Updates the profile of the currently authenticated patient user
+     * If no profile exists, creates one first
+     */
+    @PutMapping("/profile")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<PatientResponse> updateProfile(
+            @Valid @RequestBody PatientRequest patientRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getId();
+        
+        try {
+            // Get the patient ID associated with this user
+            PatientResponse currentProfile = patientService.getPatientByUserId(userId);
+            Long patientId = currentProfile.getId();
+            
+            PatientResponse response = patientService.updatePatient(patientId, patientRequest);
+            return ResponseEntity.ok(response);
+        } catch (UserNotFoundException e) {
+            // Create a new patient profile with the provided data
+            PatientResponse response = patientService.createPatient(userId, patientRequest);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }
     }
 
     /**

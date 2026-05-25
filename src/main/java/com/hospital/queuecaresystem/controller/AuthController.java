@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
@@ -27,6 +28,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
+    private final UserDetailsService userDetailsService;
 
     /**
      * Login endpoint - works for all roles (PATIENT, DOCTOR)
@@ -138,12 +140,21 @@ public class AuthController {
             // Register user via service
             UserResponse userResponse = userService.registerUser(registerRequest);
             
-            // Prepare response
-            AuthResponse response = new AuthResponse();
-            response.setUserId(userResponse.getId());
-            response.setEmail(userResponse.getEmail());
-            response.setRole(userResponse.getRole());
-            response.setMessage("User registered successfully. Please login to get token.");
+            // Load user details for token generation
+            CustomUserDetails userDetails = (CustomUserDetails) userDetailsService
+                    .loadUserByUsername(userResponse.getEmail());
+            
+            // Generate JWT token for automatic login after registration
+            String token = jwtTokenProvider.generateToken(userDetails);
+            
+            // Prepare response with token for auto-login
+            AuthResponse response = new AuthResponse(
+                    token,
+                    userResponse.getId(),
+                    userResponse.getEmail(),
+                    userResponse.getRole()
+            );
+            response.setMessage("User registered successfully. You are now logged in.");
 
             // Log successful registration (INFO level)
             log.info("User registration successful - Email: {}, UserId: {}, Role: {}", 

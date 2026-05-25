@@ -36,7 +36,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketAuthInterceptor authInterceptor;
     
-    @Value("${websocket.allowed-origins:http://localhost:3000,http://localhost:4200}")
+    @Value("${websocket.allowed-origins:http://localhost:3000,http://localhost:4200,http://localhost:5173}")
     private String allowedOrigins;
 
     /**
