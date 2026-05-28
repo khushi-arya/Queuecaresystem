@@ -10,7 +10,14 @@ export const WebSocketProvider = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState(null);
     const subscriptionsRef = useRef(new Map());
+    const reconnectAttemptsRef = useRef(0);
+    const reconnectTimeoutRef = useRef();
+    const maxReconnectAttempts = 5;
+    const baseReconnectDelay = 1000; // 1 second
     const disconnect = useCallback(() => {
+        if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+        }
         if (stompClientRef.current && stompClientRef.current.connected) {
             stompClientRef.current.disconnect();
         }
@@ -18,27 +25,75 @@ export const WebSocketProvider = ({ children }) => {
         subscriptionsRef.current.clear();
     }, []);
     const connect = useCallback(() => {
-        if (!isAuthenticated || !user?.id)
+        if (!isAuthenticated || !user?.id) {
+            disconnect();
             return;
+        }
         if (stompClientRef.current?.connected)
             return;
         const token = localStorage.getItem('auth_token');
-        if (!token)
+        if (!token) {
+            disconnect();
             return;
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-        const socket = new SockJS(`${API_BASE_URL}/ws?token=${encodeURIComponent(token)}`);
-        const stompClient = StompJs.over(socket);
-        stompClient.debug = () => { }; // Disable logging to keep console clean
-        stompClient.connect({ Authorization: `Bearer ${token}` }, () => {
-            setIsConnected(true);
-            setError(null);
-            stompClientRef.current = stompClient;
-        }, (err) => {
-            console.error('WebSocket Error:', err);
-            setError('Failed to connect to notification service');
-            setIsConnected(false);
-        });
+        }
+        try {
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+            // Pass token as query parameter for WebSocket handshake authentication
+            // The backend WebSocketAuthInterceptor extracts it from the query parameter
+            const wsUrl = `${API_BASE_URL}/ws?token=${encodeURIComponent(token)}`;
+            const socket = new SockJS(wsUrl, undefined, {
+                transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
+            });
+            const stompClient = StompJs.over(socket);
+            stompClient.debug = () => { }; // Disable logging
+            stompClient.connect({ Authorization: `Bearer ${token}` }, () => {
+                console.log('WebSocket connected successfully');
+                setIsConnected(true);
+                setError(null);
+                reconnectAttemptsRef.current = 0; // Reset reconnect counter on successful connection
+                stompClientRef.current = stompClient;
+            }, (err) => {
+                console.error('WebSocket connection error:', err);
+                setError('Connection failed. Retrying...');
+                setIsConnected(false);
+                scheduleReconnect();
+            });
+            // Handle socket close/error
+            socket.onclose = () => {
+                console.warn('WebSocket socket closed');
+                setIsConnected(false);
+                scheduleReconnect();
+            };
+            socket.onerror = () => {
+                console.error('WebSocket socket error');
+                setError('Connection lost. Attempting to reconnect...');
+                scheduleReconnect();
+            };
+        }
+        catch (err) {
+            console.error('Error creating WebSocket connection:', err);
+            setError('Failed to create connection');
+            scheduleReconnect();
+        }
     }, [isAuthenticated, user?.id]);
+    const scheduleReconnect = useCallback(() => {
+        if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+            setError('Max reconnection attempts reached. Please refresh the page.');
+            return;
+        }
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+        const delay = baseReconnectDelay * Math.pow(2, reconnectAttemptsRef.current);
+        reconnectAttemptsRef.current += 1;
+        console.log(`Scheduling reconnect attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts} in ${delay}ms`);
+        if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+        }
+        reconnectTimeoutRef.current = setTimeout(() => {
+            if (isAuthenticated && localStorage.getItem('auth_token')) {
+                connect();
+            }
+        }, delay);
+    }, [isAuthenticated, connect]);
     useEffect(() => {
         if (isAuthenticated) {
             connect();
@@ -46,16 +101,25 @@ export const WebSocketProvider = ({ children }) => {
         else {
             disconnect();
         }
-        return () => disconnect();
+        return () => {
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+            }
+        };
     }, [isAuthenticated, connect, disconnect]);
     const send = useCallback((destination, message) => {
         if (stompClientRef.current?.connected) {
             stompClientRef.current.send(destination, {}, JSON.stringify(message));
         }
+        else {
+            console.warn('WebSocket not connected. Message not sent to:', destination);
+        }
     }, []);
     const subscribe = useCallback((destination, callback) => {
-        if (!stompClientRef.current?.connected)
+        if (!stompClientRef.current?.connected) {
+            console.warn('WebSocket not connected. Cannot subscribe to:', destination);
             return () => { };
+        }
         const subscription = stompClientRef.current.subscribe(destination, (frame) => {
             try {
                 callback(JSON.parse(frame.body));
@@ -64,7 +128,11 @@ export const WebSocketProvider = ({ children }) => {
                 callback(frame.body);
             }
         });
-        return () => subscription.unsubscribe();
+        subscriptionsRef.current.set(destination, subscription);
+        return () => {
+            subscription.unsubscribe();
+            subscriptionsRef.current.delete(destination);
+        };
     }, []);
     return (_jsx(WebSocketContext.Provider, { value: { isConnected, error, send, subscribe }, children: children }));
 };

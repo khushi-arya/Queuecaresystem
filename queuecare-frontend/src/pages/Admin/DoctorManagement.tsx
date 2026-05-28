@@ -43,12 +43,11 @@ import ConfirmDialog from '@components/ConfirmDialog';
 interface Doctor {
   id: string;
   userId: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   specialization: string;
   status: 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE';
-  maxPatients: number;
+  maxPatientsPerDay?: number;
   shiftStartTime?: string;
   shiftEndTime?: string;
   createdAt: string;
@@ -63,11 +62,12 @@ interface PaginatedResponse {
 }
 
 interface DoctorFormData {
+  name: string;
   specialization: string;
   status: string;
-  maxPatients: number;
   shiftStartTime: string;
   shiftEndTime: string;
+  maxPatientsPerDay: number;
 }
 
 export const DoctorManagement: React.FC = () => {
@@ -87,11 +87,12 @@ export const DoctorManagement: React.FC = () => {
     doctorId: '',
     doctorName: '',
     formData: {
+      name: '',
       specialization: '',
       status: 'ACTIVE',
-      maxPatients: 50,
       shiftStartTime: '09:00',
       shiftEndTime: '17:00',
+      maxPatientsPerDay: 20,
     } as DoctorFormData,
   });
   const [deleteDialog, setDeleteDialog] = useState({
@@ -164,13 +165,14 @@ export const DoctorManagement: React.FC = () => {
     setEditDialog({
       open: true,
       doctorId: doctor.id,
-      doctorName: `${doctor.firstName} ${doctor.lastName}`,
+      doctorName: doctor.name || 'Doctor',
       formData: {
+        name: doctor.name || '',
         specialization: doctor.specialization,
         status: doctor.status,
-        maxPatients: doctor.maxPatients,
         shiftStartTime: doctor.shiftStartTime || '09:00',
         shiftEndTime: doctor.shiftEndTime || '17:00',
+        maxPatientsPerDay: doctor.maxPatientsPerDay || 20,
       },
     });
   };
@@ -184,11 +186,12 @@ export const DoctorManagement: React.FC = () => {
       doctorId: '',
       doctorName: '',
       formData: {
+        name: '',
         specialization: '',
         status: 'ACTIVE',
-        maxPatients: 50,
         shiftStartTime: '09:00',
         shiftEndTime: '17:00',
+        maxPatientsPerDay: 20,
       },
     });
   };
@@ -201,11 +204,12 @@ export const DoctorManagement: React.FC = () => {
       setActionLoading(true);
 
       await doctorAPI.update(editDialog.doctorId, {
+        name: editDialog.formData.name,
         specialization: editDialog.formData.specialization,
         status: editDialog.formData.status,
-        maxPatients: editDialog.formData.maxPatients,
         shiftStartTime: editDialog.formData.shiftStartTime,
         shiftEndTime: editDialog.formData.shiftEndTime,
+        maxPatientsPerDay: editDialog.formData.maxPatientsPerDay,
       });
 
       // Dispatch notification
@@ -236,7 +240,7 @@ export const DoctorManagement: React.FC = () => {
     setDeleteDialog({
       open: true,
       doctorId: doctor.id,
-      doctorName: `${doctor.firstName} ${doctor.lastName}`,
+      doctorName: doctor.name || 'Doctor',
     });
   };
 
@@ -377,9 +381,6 @@ export const DoctorManagement: React.FC = () => {
                   <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Specialization</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }} align="right">
-                    Max Patients
-                  </TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Shift Times</TableCell>
                   <TableCell sx={{ fontWeight: 600 }} align="right">
                     Actions
@@ -389,18 +390,15 @@ export const DoctorManagement: React.FC = () => {
               <TableBody>
                 {doctors.map((doctor) => (
                   <TableRow key={doctor.id} hover>
-                    <TableCell>
-                      {doctor.firstName} {doctor.lastName}
-                    </TableCell>
+                    <TableCell>{doctor.name || 'Unknown'}</TableCell>
                     <TableCell>{doctor.specialization}</TableCell>
                     <TableCell>
                       <Chip
-                        label={doctor.status}
+                        label={doctor.status || 'UNKNOWN'}
                         color={getStatusColor(doctor.status)}
                         size="small"
                       />
                     </TableCell>
-                    <TableCell align="right">{doctor.maxPatients}</TableCell>
                     <TableCell>
                       {doctor.shiftStartTime && doctor.shiftEndTime
                         ? `${doctor.shiftStartTime} - ${doctor.shiftEndTime}`
@@ -452,6 +450,18 @@ export const DoctorManagement: React.FC = () => {
         <DialogContent sx={{ pt: 3 }}>
           <Stack spacing={2}>
             <TextField
+              label="Name"
+              value={editDialog.formData.name}
+              onChange={(e) =>
+                setEditDialog({
+                  ...editDialog,
+                  formData: { ...editDialog.formData, name: e.target.value },
+                })
+              }
+              fullWidth
+              size="small"
+            />
+            <TextField
               label="Specialization"
               value={editDialog.formData.specialization}
               onChange={(e) =>
@@ -481,20 +491,6 @@ export const DoctorManagement: React.FC = () => {
               </Select>
             </FormControl>
             <TextField
-              label="Max Patients"
-              type="number"
-              value={editDialog.formData.maxPatients}
-              onChange={(e) =>
-                setEditDialog({
-                  ...editDialog,
-                  formData: { ...editDialog.formData, maxPatients: parseInt(e.target.value) },
-                })
-              }
-              fullWidth
-              size="small"
-              inputProps={{ min: 1 }}
-            />
-            <TextField
               label="Shift Start Time"
               type="time"
               value={editDialog.formData.shiftStartTime}
@@ -521,6 +517,20 @@ export const DoctorManagement: React.FC = () => {
               fullWidth
               size="small"
               InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="Max Patients Per Day"
+              type="number"
+              value={editDialog.formData.maxPatientsPerDay}
+              onChange={(e) =>
+                setEditDialog({
+                  ...editDialog,
+                  formData: { ...editDialog.formData, maxPatientsPerDay: parseInt(e.target.value) || 20 },
+                })
+              }
+              fullWidth
+              size="small"
+              inputProps={{ min: 1, max: 100 }}
             />
           </Stack>
         </DialogContent>

@@ -1,5 +1,30 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+const decodeJwtPayload = (token) => {
+    if (!token)
+        return null;
+    const parts = token.split('.');
+    if (parts.length !== 3)
+        return null;
+    try {
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const json = decodeURIComponent(atob(base64)
+            .split('')
+            .map((c) => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+            .join(''));
+        return JSON.parse(json);
+    }
+    catch (error) {
+        console.warn('Unable to parse JWT payload:', error);
+        return null;
+    }
+};
+const isJwtExpired = (token) => {
+    const payload = decodeJwtPayload(token);
+    if (!payload || typeof payload.exp !== 'number')
+        return false;
+    return Date.now() >= payload.exp * 1000;
+};
 /**
  * Create Auth Context
  */
@@ -22,17 +47,27 @@ export const AuthProvider = ({ children }) => {
                 const storedToken = localStorage.getItem('auth_token');
                 const storedUser = localStorage.getItem('auth_user');
                 if (storedToken && storedUser) {
-                    try {
-                        const parsedUser = JSON.parse(storedUser);
-                        setToken(storedToken);
-                        setUser(parsedUser);
-                        setIsAuthenticated(true);
-                    }
-                    catch (parseErr) {
-                        // Invalid JSON in localStorage
-                        console.error('Error parsing stored user:', parseErr);
+                    if (isJwtExpired(storedToken)) {
+                        console.warn('Stored auth token has expired. Clearing local storage.');
                         localStorage.removeItem('auth_token');
                         localStorage.removeItem('auth_user');
+                        setToken(null);
+                        setUser(null);
+                        setIsAuthenticated(false);
+                    }
+                    else {
+                        try {
+                            const parsedUser = JSON.parse(storedUser);
+                            setToken(storedToken);
+                            setUser(parsedUser);
+                            setIsAuthenticated(true);
+                        }
+                        catch (parseErr) {
+                            // Invalid JSON in localStorage
+                            console.error('Error parsing stored user:', parseErr);
+                            localStorage.removeItem('auth_token');
+                            localStorage.removeItem('auth_user');
+                        }
                     }
                 }
             }
